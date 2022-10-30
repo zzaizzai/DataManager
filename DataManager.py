@@ -1,6 +1,5 @@
 import glob
 import os
-from re import M
 import time
 import datetime
 import pathlib
@@ -10,18 +9,25 @@ from dotenv import load_dotenv
 
 
 if __name__ == "__main__":
+
+
+    def is_target_name(file_name: str)-> str :
+        name_split = file_name.split(" ")
+        for name in name_split:
+            if len(name[:6]) == 6 and name[:3].isalpha() and name[3:6].isdigit():
+                return name[:6]
+            else:
+                return 'error'
+    def time_normal(time):
+        return datetime.datetime.strptime(time, "%c")
+
+
+
     while True:
 
-        def is_target_name(file_name: str)-> str :
-            name_split = file_name.split(" ")
-            for name in name_split:
-                if len(name[:6]) == 6 and name[:3].isalpha() and name[3:6].isdigit():
-                    return name[:6]
-                else:
-                    return 'error'
 
-        def time_normal(time):
-            return datetime.datetime.strptime(time, "%c")
+
+
 
         print('Data manager')
         load_dotenv()
