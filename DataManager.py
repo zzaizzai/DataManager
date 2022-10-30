@@ -25,10 +25,6 @@ if __name__ == "__main__":
 
     while True:
 
-
-
-
-
         print('Data manager')
         load_dotenv()
         print(str(os.environ.get('GLOB_FILE_PATH')) + r'\**\*.xl*')
@@ -40,20 +36,23 @@ if __name__ == "__main__":
 
         for file in file_list:
             # making_time = datetime.datetime.strptime(time.ctime(os.path.getctime(file)), "%a %b %d %H:%M:%S %Y")
-            making_time = datetime.datetime.strptime(time.ctime(os.path.getctime(file)), "%c")
-            modify_time = time.ctime(os.path.getmtime(file))
+            making_time = time_normal(time.ctime(os.path.getctime(file)))
+            modify_time = time_normal(time.ctime(os.path.getmtime(file)))
             file_name = pathlib.Path(file).stem
-            df_new = df_new.append(pd.DataFrame([[file_name,making_time, modify_time,  file, is_target_name(file_name)]], columns=[ 'file_name', 'making_time','modify_time', 'file_path', 'target']))
+            df_new = df_new.append(pd.DataFrame([[file_name,making_time, modify_time,  file, is_target_name(file_name)]], columns=[ 'file_name', 'create_time','modify_time', 'file_path', 'target']))
 
+        if os.path.isfile('./DB.xlsx'):
+            df_old = pd.read_excel('./DB.xlsx')
+        else:
+            print('none old df')
+            df_old = df_new
 
-        df_old = pd.read_excel('./DB.xlsx')
-
-
+        
         # analysis
         exp_new_list = df_new['file_path'].values
         exp_new_list = list(set(list(map(lambda x: x[len_dir:].split("\\")[0], exp_new_list))))
         # print(exp_new_list)
-        df_analy = pd.DataFrame({'name': exp_new_list, 'days':[0]*len(exp_new_list), 'count':[0]*len(exp_new_list)})
+        df_analy = pd.DataFrame({'days':[0]*len(exp_new_list), 'count':[0]*len(exp_new_list), 'name': exp_new_list})
 
 
         # print(df_old)
@@ -61,11 +60,11 @@ if __name__ == "__main__":
         path_list_new = df_new['file_path'].to_list()
         for i, path in enumerate(path_list_new):
             if len(df_old.query(f'file_path == @path')) == 0:
-                print('new data: ', path[len_dir:].split("\\")[0], path[len_dir:].split("\\")[-1], ' ,Date: ' ,df_new['making_time'].to_list()[i])
+                print('New data: ', path[len_dir:].split("\\")[0], path[len_dir:].split("\\")[-1], ' ,Date: ' ,df_new['create_time'].to_list()[i])
 
             elif len(df_old.query(f'file_path == @path')) > 0:
                 if df_old.query(f'file_path == @path')['modify_time'].values[0] != df_new.query(f'file_path == @path')['modify_time'].values[0]:
-                    print( 'modifided: ',path[len_dir:].split("\\")[0], path[len_dir:].split("\\")[-1], 'Date: ', time_normal(df_old.query(f'file_path == @path')['modify_time'].values[0]), '-->' ,time_normal(df_new.query(f'file_path == @path')['modify_time'].values[0]))
+                    print( 'Modifided: ',path[len_dir:].split("\\")[0], path[len_dir:].split("\\")[-1], 'Date: ', df_old.query(f'file_path == @path')['modify_time'].values[0], '-->' ,df_new.query(f'file_path == @path')['modify_time'].values[0])
 
             
             if path[len_dir:].split("\\")[0] in exp_new_list:
@@ -78,7 +77,7 @@ if __name__ == "__main__":
         
         
 
-        
+        print()
         print(df_analy)
 
         df_analy.to_excel('./Analysis DB.xlsx')
