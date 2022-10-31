@@ -47,6 +47,8 @@ if __name__ == "__main__":
             df_new = df_new.append(pd.DataFrame([[file_name, making_time, modify_time, file[len_dir:].split("\\")[0],  is_target_name(
                 file_name),  -1,file]], columns=['file_name', 'create_time', 'modify_time',  'exp_name', 'target', 'days','file_path']))
 
+        print('new df')
+        print(df_new)
         if os.path.isfile('./DB.xlsx'):
             df_old = pd.read_excel('./DB.xlsx')
         else:
@@ -99,19 +101,19 @@ if __name__ == "__main__":
         target_list = df_new['target'].to_list()
         target_list = list(set(target_list))
         print(target_list)
-        df_new = df_new.reset_index()
+        df_new = df_new.reset_index(drop=True)
 
         df_days_all = pd.DataFrame()
         for a_target in target_list:
             df_days_part_by_modi = df_new.query('target == @a_target').sort_values('modify_time')
             print(df_days_part_by_modi)
-            date_min = pd.to_datetime(df_days_part_by_modi['modify_time'].values[0])
+            date_min = pd.to_datetime(df_days_part_by_modi['modify_time'].min())
             print(df_days_part_by_modi['modify_time'].iat[1])
             print(count_workdays(date_min, df_days_part_by_modi['modify_time'].iat[1]))
             for _, value in enumerate(df_days_part_by_modi['modify_time'].index):
                 print(value, df_days_part_by_modi['modify_time'][value])
                 # print(count_workdays(date_min, df_days['modify_time'][value]))
-                df_days_part_by_modi['days'][value] = count_workdays(date_min, df_days_part_by_modi['modify_time'][value])
+                df_days_part_by_modi.loc[value, 'days'] = count_workdays(date_min, df_days_part_by_modi.loc[value, 'modify_time'])
             df_days_all = pd.concat([df_days_all, df_days_part_by_modi])
             
             
@@ -126,12 +128,10 @@ if __name__ == "__main__":
         #     # df_analy.query('name == @value')['days'].iat[0] = df_days_all.query('exp_name == @value')['days'].mean()
         #     print(df_analy.query('name == @value')['days'].values[0])
         #     df_analy.query('name == @value')['days'].values[0] = 2
-        df_analy = df_analy.reset_index()
+        df_analy = df_analy.reset_index(drop=True)
         for _, value in enumerate(df_analy['name'].index):
             ex_name = df_analy['name'][value]
-            print(ex_name)
-            print('mean data ',df_days_all.query('exp_name == @ex_name')['days'].mean())
-            df_analy['days_mean'][value] = df_days_all.query('exp_name == @ex_name')['days'].mean()
+            df_analy.loc[value,'days_mean'] = df_days_all.query('exp_name == @ex_name')['days'].mean()
 
         print(df_days_all)
 
@@ -140,7 +140,7 @@ if __name__ == "__main__":
         print(df_analy)
 
         
-        df_analy = df_analy.reset_index()
+        df_analy = df_analy.reset_index(drop=True)
         df_analy.to_excel('./Analysis DB.xlsx', index=False)
 
         # print(df_new)
@@ -148,7 +148,7 @@ if __name__ == "__main__":
         df_save = df_days_all
         if process_do == "save":
             # df_save = df_save.sort_values(by=['target', 'modify_time'])
-            df_save = df_save.reset_index()
+            df_save = df_save.reset_index(drop=True)
             df_save.to_excel('DB.xlsx', index=False)
             print('saved new data')
             break
