@@ -1,13 +1,10 @@
 import pathlib
+import datetime
+import workdays
 
-file_name = r"C:\Users\junsa\Desktop\junsai\レオメータ\CBA001-007  200h.xls"
-name = pathlib.Path(file_name).stem
+start_date = datetime.datetime(2022,11,1)
+end_date = datetime.datetime(2022,11,7)
 
-print(name.split(" "))
-name_split = name.split(" ")
 
-for name in name_split:
-    print(name)
-    print(name[:6], name[:3], name[3:6])
-    # if len(name[:6]) == 6 and name[:3].isalpha() and name[3:].isdigit():
-    #     print(name[:6])
+print(workdays.workday(start_date, days=4))
+print(workdays.networkdays(start_date, end_date))
