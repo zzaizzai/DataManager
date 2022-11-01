@@ -47,12 +47,12 @@ if __name__ == "__main__":
             df_new = df_new.append(pd.DataFrame([[file_name, making_time, modify_time, file[len_dir:].split("\\")[0],  is_target_name(
                 file_name),  -1,file]], columns=['file_name', 'create_time', 'modify_time',  'exp_name', 'target', 'days','file_path']))
 
-        print('new df')
-        print(df_new)
+        # print('new df')
+        # print(df_new)
         if os.path.isfile('./DB.xlsx'):
             df_old = pd.read_excel('./DB.xlsx')
         else:
-            print('none old df')
+            # print('none old df')
             df_old = df_new
 
         # analysis
@@ -66,12 +66,14 @@ if __name__ == "__main__":
         # print(df_old)
         print()
         #  counts
+        count_files = 0
         path_list_new = df_new['file_path'].to_list()
         for i, path in enumerate(path_list_new):
             if len(df_old.query(f'file_path == @path')) == 0:
                 print('New data: ', path[len_dir:].split("\\")[0], path[len_dir:].split(
                     "\\")[-1], ' ,Date: ', df_new['create_time'].to_list()[i],
                     count_workdays(df_new['create_time'].to_list()[i], datetime.datetime.today()), 'days ago')
+                count_files += 1
 
             elif len(df_old.query(f'file_path == @path')) > 0:
                 if df_old.query(f'file_path == @path')['modify_time'].values[0] != df_new.query(f'file_path == @path')['modify_time'].values[0]:
@@ -82,6 +84,7 @@ if __name__ == "__main__":
                           '-->',
                           pd.to_datetime(df_new.query(f'file_path == @path')['modify_time'].values[0]), 
                           count_workdays(pd.to_datetime(df_new.query(f'file_path == @path')['modify_time'].values[0]), datetime.datetime.today()) , 'days ago')
+                    count_files += 1
 
             if path[len_dir:].split("\\")[0] in exp_new_list:
                 exp_name = path[len_dir:].split("\\")[0]
@@ -91,27 +94,28 @@ if __name__ == "__main__":
                 df_analy.at[aa.index.to_list()[0], 'count'] = aa.at[aa.index.to_list()[
                     0], 'count'] + 1
                 # print(df_analy.query('name == @exp_name'))
+        print(f'{count_files} files found with creating or modifying')
 
-        for _, value in enumerate(exp_new_list):
-            print(value)
-            print(df_new.query('exp_name == @value'))
+        # for _, value in enumerate(exp_new_list):
+            # print(value)
+            # print(df_new.query('exp_name == @value'))
 
 
         # add days data
         target_list = df_new['target'].to_list()
         target_list = list(set(target_list))
-        print(target_list)
+        # print(target_list)
         df_new = df_new.reset_index(drop=True)
 
         df_days_all = pd.DataFrame()
         for a_target in target_list:
             df_days_part_by_modi = df_new.query('target == @a_target').sort_values('modify_time')
-            print(df_days_part_by_modi)
+            # print(df_days_part_by_modi)
             date_min = pd.to_datetime(df_days_part_by_modi['modify_time'].min())
-            print(df_days_part_by_modi['modify_time'].iat[1])
-            print(count_workdays(date_min, df_days_part_by_modi['modify_time'].iat[1]))
+            # print(df_days_part_by_modi['modify_time'].iat[1])
+            # print(count_workdays(date_min, df_days_part_by_modi['modify_time'].iat[1]))
             for _, value in enumerate(df_days_part_by_modi['modify_time'].index):
-                print(value, df_days_part_by_modi['modify_time'][value])
+                # print(value, df_days_part_by_modi['modify_time'][value])
                 # print(count_workdays(date_min, df_days['modify_time'][value]))
                 df_days_part_by_modi.loc[value, 'days'] = count_workdays(date_min, df_days_part_by_modi.loc[value, 'modify_time'])
             df_days_all = pd.concat([df_days_all, df_days_part_by_modi])
@@ -132,8 +136,9 @@ if __name__ == "__main__":
         for _, value in enumerate(df_analy['name'].index):
             ex_name = df_analy['name'][value]
             df_analy.loc[value,'days_mean'] = df_days_all.query('exp_name == @ex_name')['days'].mean()
+        df_analy['days_mean'] = df_analy['days_mean'].round(1)
 
-        print(df_days_all)
+        # print(df_days_all)
 
         print()
         df_analy = df_analy.sort_values('count', ascending=False)
